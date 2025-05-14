@@ -1,8 +1,58 @@
 import { useState } from 'react';
-import { Auth } from 'aws-amplify';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Eye, EyeOff, User, Lock, Mail, ArrowRight } from 'lucide-react';
 import './App.css'; // Import the CSS file
+import { Amplify } from 'aws-amplify';
+import { signIn } from 'aws-amplify/auth';
+import { signUp } from 'aws-amplify/auth';
+// import { defineAuth } from "@aws-amplify/backend"
+
+
+Amplify.configure({
+  Auth:{
+    Cognito: {
+      //  Amazon Cognito User Pool ID
+      userPoolId: 'eu-north-1_LsFA5E1EB',
+      // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
+      // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
+      userPoolClientId: '5c86lm2nbb4tul4f35mpi1kikl',
+      // OPTIONAL - This is used when autoSignIn is enabled for Auth.signUp
+      // 'code' is used for Auth.confirmSignUp, 'link' is used for email link verification
+      signUpVerificationMethod: 'code', // 'code' | 'link'
+      loginWith: {
+        oauth: {
+          domain: 'your_cognito_domain',
+          scopes: [
+            'phone',
+            'email',
+            'profile',
+            'openid',
+            'clientMetaData',
+            'aws.cognito.signin.user.admin'
+          ],
+          redirectSignIn: ['http://localhost:3000/'],
+          redirectSignOut: ['http://localhost:3000/'],
+          responseType: 'code' // or 'token', note that REFRESH token will only be generated when the responseType is code
+        }
+      }
+    }
+  }
+});
+
+// export const auth = defineAuth({
+//   loginWith: {
+//     // this configures a required "email" attribute
+//     email: true,
+//   },
+//   userAttributes: {
+//     "custom:recaptchaToken": {
+//       dataType: "String",
+//       mutable: true,
+//       maxLen: 500,
+//       minLen: 1,
+//     },
+//   },
+// })
 
 export default function App() {
   // State management
@@ -50,9 +100,7 @@ export default function App() {
     setIsLoading(true);
     
     try {
-      const user = await Auth.signIn(username, password, {
-        clientMetadata: { recaptchaToken }
-      });
+      const { isSignedIn, nextStep } = await signIn({username, password},undefined,{'clientMetadata':recaptchaToken});
       setSuccess('Sign in successful!');
       setError('');
     } catch (err) {
@@ -87,13 +135,12 @@ export default function App() {
     setIsLoading(true);
     
     try {
-      await Auth.signUp({
+      const { isSignedUp, nextStep } = await signUp({
         username,
         password,
         attributes: {
           email
-        },
-        clientMetadata: { recaptchaToken }
+        }
       });
       setSuccess('Sign up successful! Please check your email for verification.');
       setError('');
