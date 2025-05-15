@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
-import { Eye, EyeOff, User, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, Mail, ArrowRight, Check } from 'lucide-react';
 import './App.css'; // Import the CSS file
 import { Amplify } from 'aws-amplify';
 import { signIn } from 'aws-amplify/auth';
@@ -41,6 +41,11 @@ export default function App() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [recaptchaToken, setRecaptchaToken] = useState(null);
+  
+  // Confirmation step state
+  const [isConfirmStep, setIsConfirmStep] = useState(false);
+  const [confirmationCode, setConfirmationCode] = useState('');
+  const [usernameToConfirm, setUsernameToConfirm] = useState('');
   
   // Form fields
   const [formData, setFormData] = useState({
@@ -141,10 +146,17 @@ export default function App() {
             email
           },
           validationData: {token: recaptchaToken}
-      }
+        }
       });
       console.log(nextStep)
-      setSuccess('Successfully Signed Up please enter code to confirm')
+      
+      if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
+        setSuccess('Verification code sent to your email. Please enter the code to confirm your account.');
+        setIsConfirmStep(true);
+        setUsernameToConfirm(username);
+      } else {
+        setSuccess('Successfully Signed Up please enter code to confirm')
+      }
 
       setError('')
     } catch (err) {
@@ -155,11 +167,46 @@ export default function App() {
     }
   };
 
+  // Handle Confirmation Code Submission
+  const handleConfirmSignUp = async (e) => {
+    if (e) e.preventDefault();
+    
+    if (!confirmationCode) {
+      setError('Please enter the verification code');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const { isSignUpComplete, nextStep } = await confirmSignUp({
+        username: usernameToConfirm,
+        confirmationCode
+      });
+      
+      console.log(nextStep);
+      
+      if (isSignUpComplete) {
+        setSuccess('Account verified successfully! You can now sign in.');
+        setIsConfirmStep(false);
+        setIsLogin(true);
+        setConfirmationCode('');
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Verification failed. Please check your code and try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Reset form when switching between login and signup
   const toggleAuthMode = () => {
     setIsLogin(!isLogin);
     setError('');
     setSuccess('');
+    setIsConfirmStep(false);
+    setConfirmationCode('');
     setFormData({
       username: '',
       email: '',
@@ -168,22 +215,32 @@ export default function App() {
     });
   };
 
+  // Cancel confirmation and go back to signup form
+  const cancelConfirmation = () => {
+    setIsConfirmStep(false);
+    setConfirmationCode('');
+    setError('');
+  };
+
   return (
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
           <h2>
-            {isLogin ? 'Sign in to your account' : 'Create a new account'}
+            {isConfirmStep ? 'Verify your account' : 
+             isLogin ? 'Sign in to your account' : 'Create a new account'}
           </h2>
-          <p>
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button 
-              onClick={toggleAuthMode}
-              className="text-link"
-            >
-              {isLogin ? 'Sign up' : 'Sign in'}
-            </button>
-          </p>
+          {!isConfirmStep && (
+            <p>
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <button 
+                onClick={toggleAuthMode}
+                className="text-link"
+              >
+                {isLogin ? 'Sign up' : 'Sign in'}
+              </button>
+            </p>
+          )}
         </div>
 
         {error && (
@@ -199,112 +256,160 @@ export default function App() {
         )}
 
         <div className="auth-form">
-          <div className="form-fields">
-            <div className="input-group">
-              <label htmlFor="username" className="sr-only">Username</label>
-              <div className="input-icon">
-                <User />
-              </div>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                value={formData.username}
-                onChange={handleInputChange}
-                placeholder="Username"
-              />
-            </div>
-
-            {!isLogin && (
+          {isConfirmStep ? (
+            <div className="form-fields">
               <div className="input-group">
-                <label htmlFor="email" className="sr-only">Email</label>
+                <label htmlFor="confirmationCode" className="sr-only">Confirmation Code</label>
                 <div className="input-icon">
-                  <Mail />
+                  <Check />
                 </div>
                 <input
-                  id="email"
-                  name="email"
-                  type="email"
+                  id="confirmationCode"
+                  name="confirmationCode"
+                  type="text"
                   required
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Email"
+                  value={confirmationCode}
+                  onChange={(e) => setConfirmationCode(e.target.value)}
+                  placeholder="Enter verification code"
                 />
               </div>
-            )}
-
-            <div className="input-group">
-              <label htmlFor="password" className="sr-only">Password</label>
-              <div className="input-icon">
-                <Lock />
+              
+              <div className="form-actions">
+                <button
+                  type="button"
+                  onClick={handleConfirmSignUp}
+                  className="submit-button"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <span>Processing...</span>
+                  ) : (
+                    <>
+                      <span>Verify Account</span>
+                      <ArrowRight className="button-icon" />
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelConfirmation}
+                  className="text-link"
+                  style={{ marginTop: '10px' }}
+                >
+                  Go back
+                </button>
               </div>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                required
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="password-toggle"
-              >
-                {showPassword ? <EyeOff /> : <Eye />}
-              </button>
             </div>
-
-            {!isLogin && (
-              <div className="input-group">
-                <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
-                <div className="input-icon">
-                  <Lock />
+          ) : (
+            <>
+              <div className="form-fields">
+                <div className="input-group">
+                  <label htmlFor="username" className="sr-only">Username</label>
+                  <div className="input-icon">
+                    <User />
+                  </div>
+                  <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    required
+                    value={formData.username}
+                    onChange={handleInputChange}
+                    placeholder="Username"
+                  />
                 </div>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  placeholder="Confirm Password"
-                />
+
+                {!isLogin && (
+                  <div className="input-group">
+                    <label htmlFor="email" className="sr-only">Email</label>
+                    <div className="input-icon">
+                      <Mail />
+                    </div>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="Email"
+                    />
+                  </div>
+                )}
+
+                <div className="input-group">
+                  <label htmlFor="password" className="sr-only">Password</label>
+                  <div className="input-icon">
+                    <Lock />
+                  </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="password-toggle"
+                  >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </button>
+                </div>
+
+                {!isLogin && (
+                  <div className="input-group">
+                    <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
+                    <div className="input-icon">
+                      <Lock />
+                    </div>
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      placeholder="Confirm Password"
+                    />
+                  </div>
+                )}
+
+                <div className="recaptcha-container">
+                  <ReCAPTCHA
+                    sitekey="YOUR SITE KEY"
+                    onChange={token => setRecaptchaToken(token)}
+                    theme="light"
+                    size="normal"
+                  />
+                </div>
               </div>
-            )}
 
-            <div className="recaptcha-container">
-              <ReCAPTCHA
-                sitekey="YOUR SITE KEY"
-                onChange={token => setRecaptchaToken(token)}
-                theme="light"
-                size="normal"
-              />
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button
-              type="button"
-              disabled={isLoading}
-              onClick={isLogin ? handleSignIn : handleSignUp}
-              className="submit-button"
-            >
-              {isLoading ? (
-                <span>Processing...</span>
-              ) : (
-                <>
-                  <span>{isLogin ? 'Sign in' : 'Sign up'}</span>
-                  <ArrowRight className="button-icon" />
-                </>
-              )}
-            </button>
-          </div>
+              <div className="form-actions">
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={isLogin ? handleSignIn : handleSignUp}
+                  className="submit-button"
+                >
+                  {isLoading ? (
+                    <span>Processing...</span>
+                  ) : (
+                    <>
+                      <span>{isLogin ? 'Sign in' : 'Sign up'}</span>
+                      <ArrowRight className="button-icon" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
         </div>
 
-        {isLogin && (
+        {isLogin && !isConfirmStep && (
           <div className="forgot-password">
             <button 
               type="button"
