@@ -5,23 +5,17 @@ import './App.css'; // Import the CSS file
 import { Amplify } from 'aws-amplify';
 import { signIn } from 'aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
-// import { defineAuth } from "@aws-amplify/backend"
+import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth'
 
 
 Amplify.configure({
   Auth:{
     Cognito: {
-      //  Amazon Cognito User Pool ID
-      userPoolId: 'eu-north-1_LsFA5E1EB',
-      // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
-      // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
-      userPoolClientId: '5c86lm2nbb4tul4f35mpi1kikl',
-      // OPTIONAL - This is used when autoSignIn is enabled for Auth.signUp
-      // 'code' is used for Auth.confirmSignUp, 'link' is used for email link verification
-      signUpVerificationMethod: 'code', // 'code' | 'link'
+      userPoolId: 'YourUserPoolID',
+      userPoolClientId: 'YourClientID',
+      signUpVerificationMethod: 'link',
       loginWith: {
         oauth: {
-          domain: 'your_cognito_domain',
           scopes: [
             'phone',
             'email',
@@ -38,21 +32,6 @@ Amplify.configure({
     }
   }
 });
-
-// export const auth = defineAuth({
-//   loginWith: {
-//     // this configures a required "email" attribute
-//     email: true,
-//   },
-//   userAttributes: {
-//     "custom:recaptchaToken": {
-//       dataType: "String",
-//       mutable: true,
-//       maxLen: 500,
-//       minLen: 1,
-//     },
-//   },
-// })
 
 export default function App() {
   // State management
@@ -100,15 +79,33 @@ export default function App() {
     setIsLoading(true);
     
     try {
-      const { isSignedIn, nextStep } = await signIn({username, password},undefined,{'clientMetadata':recaptchaToken});
-      setSuccess('Sign in successful!');
-      setError('');
+      const { isSignedIn, nextStep} = await signIn({
+        username, 
+        password,
+        options:{
+          authFlowType:'CUSTOM_WITH_SRP'
+        }
+      });
+      console.log(nextStep)
+      if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_CUSTOM_CHALLENGE'){
+        const challengeResponse = recaptchaToken
+        const {isSignedIn,nextStep} = await confirmSignIn({challengeResponse});
+        console.log(nextStep, isSignedIn)
+        if (isSignedIn && nextStep.signInStep === 'DONE'){
+          setSuccess('Sign in successful!');
+          setError('');
+        }else if(nextStep.signInStep !== 'DONE'){
+          setError('reCaptcha Failed');
+          setSuccess('');
+        }
+      }
     } catch (err) {
       console.error(err);
       setError(err.message || 'Sign in failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
+    setRecaptchaToken('')
   };
 
   // Handle Sign Up
@@ -119,6 +116,7 @@ export default function App() {
       setError('Please complete the reCAPTCHA verification');
       return;
     }
+    console.log(recaptchaToken)
 
     const { username, email, password, confirmPassword } = formData;
     
@@ -138,12 +136,17 @@ export default function App() {
       const { isSignedUp, nextStep } = await signUp({
         username,
         password,
-        attributes: {
-          email
-        }
+        options:{
+          userAttributes: {
+            email
+          },
+          validationData: {token: recaptchaToken}
+      }
       });
-      setSuccess('Sign up successful! Please check your email for verification.');
-      setError('');
+      console.log(nextStep)
+      setSuccess('Successfully Signed Up please enter code to confirm')
+
+      setError('')
     } catch (err) {
       console.error(err);
       setError(err.message || 'Sign up failed. Please try again.');
@@ -274,7 +277,7 @@ export default function App() {
 
             <div className="recaptcha-container">
               <ReCAPTCHA
-                sitekey="6Lfl9jcrAAAAAHykIKwNNi8CTxFrs60XS_5yzh1m"
+                sitekey="YOUR SITE KEY"
                 onChange={token => setRecaptchaToken(token)}
                 theme="light"
                 size="normal"
