@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Eye, EyeOff, User, Lock, Mail, ArrowRight, Check } from 'lucide-react';
 import './App.css'; // Import the CSS file
@@ -34,6 +35,7 @@ Amplify.configure({
 
 export default function App() {
   // State management
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -97,8 +99,12 @@ export default function App() {
         const {isSignedIn,nextStep} = await confirmSignIn({challengeResponse});
         console.log(nextStep, isSignedIn)
         if (isSignedIn && nextStep.signInStep === 'DONE'){
-          setSuccess('Sign in successful!');
+          setSuccess('Sign in successful! Redirecting to dashboard...');
           setError('');
+          // Redirect to signout page after successful login
+          setTimeout(() => {
+            navigate('/signout');
+          }, 1500);
         }else if(nextStep.signInStep !== 'DONE'){
           setError('reCaptcha Failed');
           setSuccess('');
