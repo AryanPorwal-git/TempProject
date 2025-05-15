@@ -7,12 +7,11 @@ import { signIn } from 'aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth'
 
-
 Amplify.configure({
   Auth:{
     Cognito: {
-      userPoolId: 'YourUserPoolID',
-      userPoolClientId: 'YourClientID',
+      userPoolId: process.env.REACT_APP_POOLID,
+      userPoolClientId: process.env.REACT_APP_POOL_CLIENT_ID,
       signUpVerificationMethod: 'link',
       loginWith: {
         oauth: {
@@ -46,7 +45,8 @@ export default function App() {
   const [isConfirmStep, setIsConfirmStep] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState('');
   const [usernameToConfirm, setUsernameToConfirm] = useState('');
-  
+
+
   // Form fields
   const [formData, setFormData] = useState({
     username: '',
@@ -380,7 +380,7 @@ export default function App() {
 
                 <div className="recaptcha-container">
                   <ReCAPTCHA
-                    sitekey="YOUR SITE KEY"
+                    sitekey={process.env.REACT_APP_SITE_KEY}
                     onChange={token => setRecaptchaToken(token)}
                     theme="light"
                     size="normal"
