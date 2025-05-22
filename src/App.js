@@ -11,8 +11,8 @@ import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth'
 Amplify.configure({
   Auth:{
     Cognito: {
-      userPoolId: "eu-north-1_ylqcFREOo",
-      userPoolClientId: "4sjo4u5ijd8vb45qpk51j8r7i2",
+      userPoolId: process.env.REACT_APP_POOLID,
+      userPoolClientId: process.env.REACT_APP_POOL_CLIENT_ID,
       signUpVerificationMethod: 'link',
       loginWith: {
         oauth: {
