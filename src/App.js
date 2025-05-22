@@ -11,8 +11,8 @@ import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth'
 Amplify.configure({
   Auth:{
     Cognito: {
-      userPoolId: process.env.REACT_APP_POOLID,
-      userPoolClientId: process.env.REACT_APP_POOL_CLIENT_ID,
+      userPoolId: "eu-north-1_ylqcFREOo",
+      userPoolClientId: "4sjo4u5ijd8vb45qpk51j8r7i2",
       signUpVerificationMethod: 'link',
       loginWith: {
         oauth: {
@@ -112,7 +112,7 @@ export default function App() {
         } else if (nextStepAfterCaptcha.signInStep === 'CONFIRM_SIGN_IN_WITH_CUSTOM_CHALLENGE') {
           // Second custom challenge - ToS
           const challengeParameters = nextStepAfterCaptcha.additionalInfo;
-          const tosContent = challengeParameters?.tosContent || challengeParameters?.TOS_CONTENT || 'Terms of Service content';
+          const tosContent = challengeParameters.tos
           
           console.log('ToS challenge parameters:', challengeParameters);
           
