@@ -11,8 +11,8 @@ import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth'
 Amplify.configure({
   Auth:{
     Cognito: {
-      userPoolId: process.env.REACT_APP_POOLID,
-      userPoolClientId: process.env.REACT_APP_POOL_CLIENT_ID,
+      userPoolId: "eu-north-1_ylqcFREOo",
+      userPoolClientId: "4sjo4u5ijd8vb45qpk51j8r7i2",
       signUpVerificationMethod: 'link',
       loginWith: {
         oauth: {
@@ -47,7 +47,6 @@ export default function App() {
   const [isConfirmStep, setIsConfirmStep] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState('');
   const [usernameToConfirm, setUsernameToConfirm] = useState('');
-
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -93,30 +92,49 @@ export default function App() {
           authFlowType:'CUSTOM_WITH_SRP'
         }
       });
-      console.log(nextStep)
+      
+      console.log('Initial sign in step:', nextStep);
+      
       if (nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_CUSTOM_CHALLENGE'){
-        const challengeResponse = recaptchaToken
-        const {isSignedIn,nextStep} = await confirmSignIn({challengeResponse});
-        console.log(nextStep, isSignedIn)
-        if (isSignedIn && nextStep.signInStep === 'DONE'){
+        // First custom challenge - reCAPTCHA
+        const challengeResponse = recaptchaToken;
+        const {isSignedIn: isSignedInAfterCaptcha, nextStep: nextStepAfterCaptcha} = await confirmSignIn({challengeResponse});
+        
+        console.log('After reCAPTCHA challenge:', { isSignedInAfterCaptcha, nextStepAfterCaptcha });
+        
+        if (isSignedInAfterCaptcha && nextStepAfterCaptcha.signInStep === 'DONE'){
+          // No ToS challenge - direct sign in
           setSuccess('Sign in successful! Redirecting to dashboard...');
           setError('');
-          // Redirect to signout page after successful login
           setTimeout(() => {
             navigate('/signout');
           }, 1500);
-        }else if(nextStep.signInStep !== 'DONE'){
-          setError('reCaptcha Failed');
+        } else if (nextStepAfterCaptcha.signInStep === 'CONFIRM_SIGN_IN_WITH_CUSTOM_CHALLENGE') {
+          // Second custom challenge - ToS
+          const challengeParameters = nextStepAfterCaptcha.additionalInfo;
+          const tosContent = challengeParameters?.tosContent || challengeParameters?.TOS_CONTENT || 'Terms of Service content';
+          
+          console.log('ToS challenge parameters:', challengeParameters);
+          
+          // Navigate to ToS page with the content
+          navigate('/terms-of-service', {
+            state: {
+              tosContent: tosContent,
+              challengeParameters: challengeParameters
+            }
+          });
+        } else if(nextStepAfterCaptcha.signInStep !== 'DONE'){
+          setError('reCaptcha validation failed');
           setSuccess('');
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error('Sign in error:', err);
       setError(err.message || 'Sign in failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
-    setRecaptchaToken('')
+    setRecaptchaToken('');
   };
 
   // Handle Sign Up
