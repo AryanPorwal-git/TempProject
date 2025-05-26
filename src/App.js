@@ -6,7 +6,8 @@ import './App.css'; // Import the CSS file
 import { Amplify } from 'aws-amplify';
 import { signIn } from 'aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
-import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth'
+import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth';
+import {downloadData} from 'aws-amplify/storage' 
 
 Amplify.configure({
   Auth:{
@@ -27,6 +28,25 @@ Amplify.configure({
           redirectSignIn: ['http://localhost:3000/'],
           redirectSignOut: ['http://localhost:3000/'],
           responseType: 'code' // or 'token', note that REFRESH token will only be generated when the responseType is code
+        }
+      }
+    }
+  },
+  Storage: {
+    S3: {
+      bucket: "pransri-tos-bucket",
+      region: "eu-north-1",
+      buckets: {
+        "pransri-tos-bucket": {
+          bucketName: "pransri-tos-bucket",
+          region: "eu-north-1",
+          paths: {
+            "tosfiles/*": {
+              guest: ["get", "list"],
+              authenticated: ["get", "list", "write", "delete"],
+              groupsadmin: ["get", "list", "write", "delete"]
+            },
+          }
         }
       }
     }
@@ -173,6 +193,8 @@ export default function App() {
         }
       });
       console.log(nextStep)
+      const tosvariable = downloadData({path:'tosfiles/test.txt'}).result
+      console.log(tosvariable)
       
       if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
         setSuccess('Verification code sent to your email. Please enter the code to confirm your account.');
