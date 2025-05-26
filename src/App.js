@@ -85,7 +85,7 @@ export default function App() {
   useEffect(() => {
     const fetchToS = async () => {
       try {
-        const response = await fetch('https://xnixfv0iva.execute-api.eu-north-1.amazonaws.com');
+        const response = await fetch(process.env.REACT_APP_S3URL);
         const data = await response.text();
         setGetTos(data);
       } catch (error) {
@@ -463,7 +463,7 @@ export default function App() {
 
                 <div className="recaptcha-container">
                   <ReCAPTCHA
-                    sitekey="Blahblah"
+                    sitekey={process.env.REACT_APP_SITE_KEY}
                     onChange={token => setRecaptchaToken(token)}
                     theme="light"
                     size="normal"
