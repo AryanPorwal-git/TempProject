@@ -81,8 +81,12 @@ export default function App() {
         setAcceptedToS(event.target.checked);
     };
 
-  const tos = fetch(process.env.REACT_APP_S3URL)
-  setGetTos(tos)
+  const handleToSFetch = async ()=> {
+    const res = await fetch(process.env.REACT_APP_S3URL);
+    return res
+  }
+  
+  setGetTos(handleToSFetch())
   console.log("The ToS Is set to: ",getTos)
 
   // Handle form input changes
@@ -429,6 +433,7 @@ export default function App() {
                       placeholder="Confirm Password"
                     />
                     <label>
+                    <p>{getTos}</p>
                     <input
                         type="radio"
                         name="tos"
