@@ -7,7 +7,6 @@ import { Amplify } from 'aws-amplify';
 import { signIn } from 'aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth';
-import {downloadData} from 'aws-amplify/storage' 
 
 Amplify.configure({
   Auth:{
@@ -32,25 +31,25 @@ Amplify.configure({
       }
     }
   },
-  Storage: {
-    S3: {
-      bucket: "pransri-tos-bucket",
-      region: "eu-north-1",
-      buckets: {
-        "pransri-tos-bucket": {
-          bucketName: "pransri-tos-bucket",
-          region: "eu-north-1",
-          paths: {
-            "tosfiles/*": {
-              guest: ["get", "list"],
-              authenticated: ["get", "list", "write", "delete"],
-              groupsadmin: ["get", "list", "write", "delete"]
-            },
-          }
-        }
-      }
-    }
-  }
+  // Storage: {
+  //   S3: {
+  //     bucket: "pransri-tos-bucket",
+  //     region: "eu-north-1",
+  //     buckets: {
+  //       "pransri-tos-bucket": {
+  //         bucketName: "pransri-tos-bucket",
+  //         region: "eu-north-1",
+  //         paths: {
+  //           "tosfiles/*": {
+  //             guest: ["get", "list"],
+  //             authenticated: ["get", "list", "write", "delete"],
+  //             groupsadmin: ["get", "list", "write", "delete"]
+  //           },
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
 });
 
 export default function App() {
@@ -67,6 +66,8 @@ export default function App() {
   const [isConfirmStep, setIsConfirmStep] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState('');
   const [usernameToConfirm, setUsernameToConfirm] = useState('');
+  const [getTos, setGetTos] = useState('No ToS Available');
+  const [acceptedToS, setAcceptedToS] = useState(false);
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -75,6 +76,14 @@ export default function App() {
     password: '',
     confirmPassword: ''
   });
+
+  const handleToSChange = (event) => {
+        setAcceptedToS(event.target.checked);
+    };
+
+  const tos = fetch(process.env.REACT_APP_S3URL)
+  setGetTos(tos)
+  console.log("The ToS Is set to: ",getTos)
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -187,14 +196,12 @@ export default function App() {
         password,
         options:{
           userAttributes: {
-            email
+            email,
+            "custom:TosValidity": acceptedToS ? getTos : ""
           },
           validationData: {token: recaptchaToken}
         }
       });
-      console.log(nextStep)
-      const tosvariable = downloadData({path:'tosfiles/test.txt'}).result
-      console.log(tosvariable)
       
       if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
         setSuccess('Verification code sent to your email. Please enter the code to confirm your account.');
@@ -421,6 +428,15 @@ export default function App() {
                       onChange={handleInputChange}
                       placeholder="Confirm Password"
                     />
+                    <label>
+                    <input
+                        type="radio"
+                        name="tos"
+                        checked={acceptedToS}
+                        onChange={handleToSChange}
+                    />
+                    I accept the Terms of Service
+                </label>
                   </div>
                 )}
 
