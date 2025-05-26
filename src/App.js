@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { Eye, EyeOff, User, Lock, Mail, ArrowRight, Check } from 'lucide-react';
@@ -81,13 +81,21 @@ export default function App() {
         setAcceptedToS(event.target.checked);
     };
 
-  const handleToSFetch = async ()=> {
-    const res = await fetch(process.env.REACT_APP_S3URL);
-    return res
-  }
-  
-  setGetTos(handleToSFetch())
-  console.log("The ToS Is set to: ",getTos)
+  // Replace the direct setGetTos call with useEffect
+  useEffect(() => {
+    const fetchToS = async () => {
+      try {
+        const response = await fetch('https://xnixfv0iva.execute-api.eu-north-1.amazonaws.com');
+        const data = await response.text();
+        setGetTos(data);
+      } catch (error) {
+        console.error('Error fetching ToS:', error);
+        setGetTos('Failed to load Terms of Service');
+      }
+    };
+    
+    fetchToS();
+  }, []);
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -418,6 +426,7 @@ export default function App() {
                 </div>
 
                 {!isLogin && (
+                  <div>
                   <div className="input-group">
                     <label htmlFor="confirmPassword" className="sr-only">Confirm Password</label>
                     <div className="input-icon">
@@ -432,22 +441,29 @@ export default function App() {
                       onChange={handleInputChange}
                       placeholder="Confirm Password"
                     />
-                    <label>
-                    <p>{getTos}</p>
-                    <input
-                        type="radio"
-                        name="tos"
-                        checked={acceptedToS}
-                        onChange={handleToSChange}
-                    />
-                    I accept the Terms of Service
-                </label>
+                  </div>
+                  <div className="tos-container">
+                      <div className="tos-content">
+                        {getTos}
+                      </div>
+                      <div className="tos-acceptance">
+                        <input
+                          type="checkbox"
+                          id="tosAcceptance"
+                          checked={acceptedToS}
+                          onChange={handleToSChange}
+                        />
+                        <label htmlFor="tosAcceptance">
+                          I accept the Terms of Service
+                        </label>
+                      </div>
+                    </div>
                   </div>
                 )}
 
                 <div className="recaptcha-container">
                   <ReCAPTCHA
-                    sitekey={process.env.REACT_APP_SITE_KEY}
+                    sitekey="Blahblah"
                     onChange={token => setRecaptchaToken(token)}
                     theme="light"
                     size="normal"
