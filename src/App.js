@@ -208,10 +208,9 @@ export default function App() {
         password,
         options:{
           userAttributes: {
-            email,
-            "custom:TosValidity": acceptedToS ? getTos : ""
+            email
           },
-          validationData: {token: recaptchaToken}
+          validationData: {token: recaptchaToken, ToSValidity: acceptedToS ? getTos : ""}
         }
       });
       
