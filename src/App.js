@@ -13,9 +13,10 @@ Amplify.configure({
     Cognito: {
       userPoolId: process.env.REACT_APP_POOLID,
       userPoolClientId: process.env.REACT_APP_POOL_CLIENT_ID,
-      signUpVerificationMethod: 'link',
+      signUpVerificationMethod: 'code',
       loginWith: {
         oauth: {
+          domain: 'pransri-auth-client.auth.us-east-1.amazoncognito.com',
           scopes: [
             'phone',
             'email',
