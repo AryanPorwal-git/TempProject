@@ -16,12 +16,13 @@ Amplify.configure({
       signUpVerificationMethod: 'code',
       loginWith: {
         oauth: {
-          domain: 'pransri-auth-client.auth.us-east-1.amazoncognito.com',
           scopes: [
             'phone',
             'email',
             'profile',
-            'openid'
+            'openid',
+            'clientMetaData',
+            'aws.cognito.signin.user.admin'
           ],
           redirectSignIn: ['http://localhost:3000/'],
           redirectSignOut: ['http://localhost:3000/'],
