@@ -7,6 +7,7 @@ import { Amplify } from 'aws-amplify';
 import { signIn } from 'aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth';
+import { sha256 } from 'js-sha256';
 
 Amplify.configure({
   Auth:{
@@ -209,7 +210,7 @@ export default function App() {
         options:{
           userAttributes: {
             email,
-            "custom:TosValidity": acceptedToS ? getTos : ""
+            "custom:TosValidity": acceptedToS ? sha256.hex(getTos) : ""
           },
           validationData: {token: recaptchaToken}
         }
