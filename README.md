@@ -60,11 +60,11 @@ API Gateway ↔ Lambda for secure access
 
 ## Instructions to Launch:
 
-CloudFormation Template: [](https://github.com/pranavsrinivasa/TempProject/auth-template.yaml)
+CloudFormation Template: [auth-template.yaml](https://github.com/pranavsrinivasa/Secure-Sign-In-with-custom-authentication-for-Cognito/auth-template.yaml)
 - Step: 1 - Create your own google reCaptcha and find your site key and secret.
 - Step: 2 - In the cloudformation template add the following parameters:
   - Add the reCaptcha Site Key and Secret Key
-  - Github repo link. ( Fork the Repo: https://github.com/pranavsrinivasa/TempProject into an account and use the github link of the forked repo. )
+  - Github repo link. ( Fork the Repo: https://github.com/pranavsrinivasa/Secure-Sign-In-with-custom-authentication-for-Cognito into an account and use the github link of the forked repo. )
   - Create a Github Classic Personal Access Token and add the PAT key
   - Add a globally unique S3 bucket name
   ![Image](https://github.com/user-attachments/assets/bdaae330-d715-46b5-84b3-659a7096a589)
