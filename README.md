@@ -60,7 +60,7 @@ API Gateway ↔ Lambda for secure access
 
 ## Instructions to Launch:
 
-CloudFormation Template: [auth-template.yaml](https://github.com/pranavsrinivasa/Secure-Sign-In-with-custom-authentication-for-Cognito/auth-template.yaml)
+CloudFormation Template: [auth-template.yaml](https://github.com/pranavsrinivasa/Secure-Sign-In-with-custom-authentication-for-Cognito/blob/master/auth-template.yaml)
 - Step: 1 - Create your own google reCaptcha and find your site key and secret.
 - Step: 2 - In the cloudformation template add the following parameters:
   - Add the reCaptcha Site Key and Secret Key
