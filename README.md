@@ -1,70 +1,81 @@
-# Getting Started with Create React App
+# Secure Sign-In with custom authentication for CAPTCHA and Terms of Service Acknowledgement using Cognito and Amplify
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Overview
+This project implements an enterprise-grade authentication solution using AWS Cognito and Amplify, featuring custom authentication flows with mandatory Terms of Service acknowledgment and Google reCAPTCHA verification.
 
-## Available Scripts
+## Features
+One-click AWS CloudFormation deployment
+Custom authentication workflow
+Terms of Service (ToS) verification
+Google reCAPTCHA integration
+Secure API access management
+Enterprise-ready security controls
 
-In the project directory, you can run:
+## Architechture:
 
-### `npm start`
+![Image](https://github.com/user-attachments/assets/af381030-e6a5-42fa-b76c-7c5b839e0387)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Design Workflow
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Sign-Up Flow:
 
-### `npm test`
+User initiates sign-up through Amplify UI
+Amplify sends a GET request to the API gateway
+FileFetchLambda accesses ToS files from S3 bucket
+API Gateway handles the ToS file delivery
+RefererAuthorizer Lambda verifies access permissions of the request from Amplify
+PreSignUp Lambda performs:
+CAPTCHA verification with reCAPTCHA
+ToS SHA verification with S3 bucket
+Cognito creates user account after successful validation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Sign-In Flow:
 
-### `npm run build`
+User attempts to sign in through Amplify interface
+Cognito triggers custom authentication flow with three Lambda functions:
+DefineAuthChallenge: Sets up authentication parameters
+CreateAuthChallenge: Generates challenge parameters
+VerifyAuthChallenge: Validates user response
+DefineAuthChallenge Lambda defines the challenge parameters for SRP password verification and custom auth challenge for ToS Validation and Captcha.
+CreateAuthChallenge Lambda fetches the challenge parameters for ToS and Captcha and returns to Amplify User Client
+Amplify Client calls the confirm sign in API call to Congito
+VerifyAuthChallenge Lambda receives the challenge response and Verifies the ToS SHA, Captcha Response Token.
+The user gets signed in, on the Amplify Client.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Security Components:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+API Gateway manages secure API access
+S3 buckets store ToS documents
+Lambda functions handle various security checks
+Cognito manages user pool and authentication
+reCAPTCHA provides bot protection
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Integration Points:
 
-### `npm run eject`
+Amplify UI ↔ Cognito for user management
+Lambda ↔ S3 for ToS verification
+Lambda ↔ reCAPTCHA for challenge verification
+API Gateway ↔ Lambda for secure access
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Instructions to Launch:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+CloudFormation Template: [](https://github.com/pranavsrinivasa/TempProject/auth-template.yaml)
+- Step: 1 - Create your own google reCaptcha and find your site key and secret.
+- Step: 2 - In the cloudformation template add the following parameters:
+  - Add the reCaptcha Site Key and Secret Key
+  - Github repo link. ( Fork the Repo: https://github.com/pranavsrinivasa/TempProject into an account and use the github link of the forked repo. )
+  - Create a Github Classic Personal Access Token and add the PAT key
+  - Add a globally unique S3 bucket name
+  ![Image](https://github.com/user-attachments/assets/bdaae330-d715-46b5-84b3-659a7096a589)
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- Step: 3 - Deploy the template.
+- Step: 4 - Check if all the resources are correct and deployed
+- Step: 5 - Upload ToS files in the S3 bucket with the prefix key : bucket-name/tosfiles/test.txt ( To change the prefix, the environment variables of lambda functions and Amplify needs to updated )
+  ![image](https://github.com/user-attachments/assets/c9f00db2-b36a-4e8d-9dbb-e4422e2c14ef)
+  ![image](https://github.com/user-attachments/assets/aaa1b8b7-afa9-4b13-8df8-e6b4669a42db)
+  ![image](https://github.com/user-attachments/assets/0a46e997-fc91-4c8b-898b-7a8eddaa9a1d)
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Step: 6 - Go to Amplify app and deploy the app
+- Step: 7 - Put the domain of amplify in the google reCaptcha
+- Step: 8 - Verify the working
