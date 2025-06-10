@@ -87,8 +87,8 @@ export default function TermsOfService() {
     <div className="auth-container">
       <div className="auth-card" style={{ maxWidth: '40rem' }}>
         <div className="auth-header">
-          <h2>Terms of Service</h2>
-          <p>Please read and acknowledge the Terms of Service to complete your registration</p>
+          <h2>Terms of Service has been Updated</h2>
+          <p>Please read and acknowledge the new Terms of Service to complete your registration</p>
         </div>
 
         {error && (
