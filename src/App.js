@@ -8,6 +8,28 @@ import { signIn } from 'aws-amplify/auth';
 import { signUp } from 'aws-amplify/auth';
 import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth';
 import { sha256 } from 'js-sha256';
+import ReactModal from 'react-modal';
+
+const customStyles = {
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1000
+  },
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    width: '80%',
+    maxWidth: '700px',
+    maxHeight: '80vh',
+    padding: '20px',
+    borderRadius: '8px'
+  }
+};
+
 
 Amplify.configure({
   Auth:{
@@ -62,7 +84,15 @@ export default function App() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [recaptchaToken, setRecaptchaToken] = useState(null);
-  
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const openModal = () => {
+    setModalIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+  };
   // Confirmation step state
   const [isConfirmStep, setIsConfirmStep] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState('');
@@ -445,19 +475,48 @@ export default function App() {
                   </div>
                   <div className="tos-container">
                       <div className="tos-content">
-                        {getTos}
+                        <div className="tos-acceptance">
+                          <input
+                            type="checkbox"
+                            id="tosAcceptance"
+                            checked={acceptedToS}
+                            onChange={handleToSChange}
+                          />
+                          <label htmlFor="tosAcceptance">
+                            I accept the{"\u00A0"}
+                          </label>
+                          <button className="text-link" onClick={openModal}>Terms of Service</button>
+                        </div>
+                        <ReactModal
+                          isOpen={modalIsOpen}
+                          onRequestClose={closeModal}
+                          style={customStyles}
+                          contentLabel="Terms of Service Modal"
+                          shouldCloseOnOverlayClick={true}
+                          shouldCloseOnEsc={true}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                            <h2>Terms of Service</h2>
+                            <button 
+                              onClick={closeModal}
+                              style={{ 
+                                background: 'none', 
+                                border: 'none', 
+                                fontSize: '24px', 
+                                cursor: 'pointer' 
+                              }}
+                            >
+                              ×
+                            </button>
+                          </div>
+                          
+                          <div style={{ overflowY: 'auto', maxHeight: 'calc(80vh - 100px)' }}>
+                            <p>{getTos}</p>
+                          </div>
+
+                        </ReactModal>
                       </div>
-                      <div className="tos-acceptance">
-                        <input
-                          type="checkbox"
-                          id="tosAcceptance"
-                          checked={acceptedToS}
-                          onChange={handleToSChange}
-                        />
-                        <label htmlFor="tosAcceptance">
-                          I accept the Terms of Service
-                        </label>
-                      </div>
+                      
                     </div>
                   </div>
                 )}
