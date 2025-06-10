@@ -2,6 +2,27 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { confirmSignIn } from 'aws-amplify/auth';
 import { ArrowRight, FileText, Check } from 'lucide-react';
+import ReactModal from 'react-modal';
+
+const customStyles = {
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1000
+  },
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    width: '80%',
+    maxWidth: '700px',
+    maxHeight: '80vh',
+    padding: '20px',
+    borderRadius: '8px'
+  }
+};
 
 export default function TermsOfService() {
   const location = useLocation();
@@ -9,6 +30,15 @@ export default function TermsOfService() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [acknowledged, setAcknowledged] = useState(false);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const openModal = () => {
+    setModalIsOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
+  };
   
   // Get ToS content from navigation state
   const tosContent = location.state?.tosContent || 'Terms of Service content not available';
@@ -75,15 +105,39 @@ export default function TermsOfService() {
               <h3>Terms of Service Agreement</h3>
             </div>
             
-            <div className="tos-text">
-              {tosContent.split('\n').map((paragraph, index) => (
+            <ReactModal
+              isOpen={modalIsOpen}
+              onRequestClose={closeModal}
+              style={customStyles}
+              contentLabel="Terms of Service Modal"
+              shouldCloseOnOverlayClick={true}
+              shouldCloseOnEsc={true}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <h2>Terms of Service</h2>
+                <button 
+                  onClick={closeModal}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    fontSize: '24px', 
+                    cursor: 'pointer' 
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div style={{ overflowY: 'auto', maxHeight: 'calc(80vh - 100px)' }}>
+                {tosContent.split('\n').map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
-              ))}
-            </div>
+                ))}
+              </div>
+              </ReactModal>
           </div>
 
           {/* Acknowledgment Checkbox */}
-          <div className="tos-acknowledgment">
+          <div className="tos-acceptance">
             <label className="checkbox-container">
               <input
                 type="checkbox"
@@ -91,8 +145,9 @@ export default function TermsOfService() {
                 onChange={(e) => setAcknowledged(e.target.checked)}
               />
               <span className="checkmark"></span>
-              I have read and agree to the Terms of Service
+              {"\u00A0"}I have read and agree to the {"\u00A0"}
             </label>
+            <button className="text-link" onClick={openModal}>Terms of Service</button>
           </div>
 
           {/* Action Buttons */}
