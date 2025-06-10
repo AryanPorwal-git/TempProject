@@ -257,6 +257,22 @@
     text-align: center;
     margin-top: 1rem;
   }
+  .tos-header{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+  .tos-acceptance{
+    margin: 10px;
+    padding: 10px;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+  }
+  #tosAcceptance{
+    margin-right: 10px;
+  }
   
   /* Responsive adjustments */
   @media (max-width: 640px) {
