@@ -65,23 +65,6 @@ Amplify.configure({
           bucketName: process.env.REACT_APP_S3NAME,
           region: process.env.REACT_APP_S3REGION,
           paths: {
-            "public/*": {
-              guest: ["get", "list"],
-              authenticated: ["get", "list"],
-              groupsadmin: ["get", "list"]
-            },
-            "protected/*": {
-              guest: ["get", "list"],
-              authenticated: ["get", "list"],
-              groupsadmin: ["get", "list"]
-            },
-            "protected/${cognito-identity.amazonaws.com:sub}/*": {
-              entityidentity: ["get", "list"]
-            },
-            "admin/*": {
-              authenticated: ["get", "list"],
-              groupsadmin: ["get", "list"],
-            },
             "tosfiles/*":{
               guest: ["get", "list"],
               authenticated: ["get", "list"],
@@ -135,9 +118,13 @@ export default function App() {
   useEffect(() => {
     const fetchToS = async () => {
       try {
-        const downloadResult = await downloadData({
-          path: "tosfiles/test.txt"
+        const downloadedData = await downloadData({
+          key: "tos_files/test.txt",
+          options: {
+            bucket: "bucket_some_name"
+          }
         }).result;
+        console.log('Downloaded data:', downloadedData);
         const response = downloadResult.body.text();
         const data = await response.text();
         setGetTos(data);
