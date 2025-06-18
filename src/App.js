@@ -9,6 +9,7 @@ import { signUp } from 'aws-amplify/auth';
 import {confirmSignIn,confirmSignUp} from 'aws-amplify/auth';
 import { sha256 } from 'js-sha256';
 import ReactModal from 'react-modal';
+import { downloadData } from 'aws-amplify/storage';
 
 const customStyles = {
   overlay: {
@@ -36,6 +37,7 @@ Amplify.configure({
     Cognito: {
       userPoolId: process.env.REACT_APP_POOLID,
       userPoolClientId: process.env.REACT_APP_POOL_CLIENT_ID,
+      identityPoolId: process.env.REACT_APP_IDENTITYPOOLID,
       signUpVerificationMethod: 'code',
       loginWith: {
         oauth: {
@@ -54,25 +56,42 @@ Amplify.configure({
       }
     }
   },
-  // Storage: {
-  //   S3: {
-  //     bucket: "pransri-tos-bucket",
-  //     region: "eu-north-1",
-  //     buckets: {
-  //       "pransri-tos-bucket": {
-  //         bucketName: "pransri-tos-bucket",
-  //         region: "eu-north-1",
-  //         paths: {
-  //           "tosfiles/*": {
-  //             guest: ["get", "list"],
-  //             authenticated: ["get", "list", "write", "delete"],
-  //             groupsadmin: ["get", "list", "write", "delete"]
-  //           },
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
+  Storage: {
+    S3: {
+      bucket: process.env.REACT_APP_S3NAME,
+      region: process.env.REACT_APP_S3REGION,
+      [process.env.REACT_APP_S3NAME] : {
+        [process.env.REACT_APP_S3NAME]: {
+          bucketName: process.env.REACT_APP_S3NAME,
+          region: process.env.REACT_APP_S3REGION,
+          paths: {
+            "public/*": {
+              guest: ["get", "list"],
+              authenticated: ["get", "list"],
+              groupsadmin: ["get", "list"]
+            },
+            "protected/*": {
+              guest: ["get", "list"],
+              authenticated: ["get", "list"],
+              groupsadmin: ["get", "list"]
+            },
+            "protected/${cognito-identity.amazonaws.com:sub}/*": {
+              entityidentity: ["get", "list"]
+            },
+            "admin/*": {
+              authenticated: ["get", "list"],
+              groupsadmin: ["get", "list"],
+            },
+            "tosfiles/*":{
+              guest: ["get", "list"],
+              authenticated: ["get", "list"],
+              groupsadmin: ["get", "list"]
+            }
+          }
+        }
+      }
+    }
+  }
 });
 
 export default function App() {
@@ -116,7 +135,10 @@ export default function App() {
   useEffect(() => {
     const fetchToS = async () => {
       try {
-        const response = await fetch(process.env.REACT_APP_S3URL);
+        const downloadResult = await downloadData({
+          path: "tosfiles/test.txt"
+        }).result;
+        const response = downloadResult.body.text();
         const data = await response.text();
         setGetTos(data);
       } catch (error) {
