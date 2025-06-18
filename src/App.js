@@ -123,10 +123,7 @@ export default function App() {
       try {
         console.log(process.env.REACT_APP_S3NAME)
         const downloadedData = await downloadData({
-          path: "tos_files/test.txt",
-          options: {
-            bucket: process.env.REACT_APP_S3NAME
-          }
+          path: "tos_files/test.txt"
         }).result;
         console.log('Downloaded data:', downloadedData);
         const response = downloadedData.body.text();
