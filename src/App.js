@@ -60,19 +60,22 @@ Amplify.configure({
     S3: {
       bucket: process.env.REACT_APP_S3NAME,
       region: process.env.REACT_APP_S3REGION,
-      [process.env.REACT_APP_S3NAME] : {
-        [process.env.REACT_APP_S3NAME]: {
-          bucketName: process.env.REACT_APP_S3NAME,
-          region: process.env.REACT_APP_S3REGION,
-          paths: {
-            "tosfiles/*":{
-              guest: ["get", "list"],
-              authenticated: ["get", "list"],
-              groupsadmin: ["get", "list"]
+      [process.env.REACT_APP_S3NAME] : [
+        {
+          [process.env.REACT_APP_S3NAME]: {
+            name: process.env.REACT_APP_S3NAME,
+            bucketName: process.env.REACT_APP_S3NAME,
+            region: process.env.REACT_APP_S3REGION,
+            paths: {
+              "tosfiles/*":{
+                guest: ["get", "list"],
+                authenticated: ["get", "list"],
+                groupsadmin: ["get", "list"]
+              }
             }
           }
         }
-      }
+      ]
     }
   }
 });
@@ -118,6 +121,7 @@ export default function App() {
   useEffect(() => {
     const fetchToS = async () => {
       try {
+        console.log(process.env.REACT_APP_S3NAME)
         const downloadedData = await downloadData({
           path: "tos_files/test.txt",
           options: {
