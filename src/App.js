@@ -119,9 +119,9 @@ export default function App() {
     const fetchToS = async () => {
       try {
         const downloadedData = await downloadData({
-          key: "tos_files/test.txt",
+          path: "tos_files/test.txt",
           options: {
-            bucket: "bucket_some_name"
+            bucket: process.env.REACT_APP_S3NAME
           }
         }).result;
         console.log('Downloaded data:', downloadedData);
