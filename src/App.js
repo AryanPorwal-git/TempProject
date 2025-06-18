@@ -39,6 +39,7 @@ Amplify.configure({
       userPoolClientId: process.env.REACT_APP_POOL_CLIENT_ID,
       identityPoolId: process.env.REACT_APP_IDENTITYPOOLID,
       signUpVerificationMethod: 'code',
+      allowGuestAccess: true,
       loginWith: {
         oauth: {
           scopes: [
