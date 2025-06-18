@@ -125,7 +125,7 @@ export default function App() {
           }
         }).result;
         console.log('Downloaded data:', downloadedData);
-        const response = downloadResult.body.text();
+        const response = downloadedData.body.text();
         const data = await response.text();
         setGetTos(data);
       } catch (error) {
