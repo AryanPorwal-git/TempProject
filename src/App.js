@@ -128,7 +128,8 @@ export default function App() {
         }).result;
         console.log('Downloaded data:', downloadedData);
         const response = downloadedData.body.text();
-        const data = await response.text();
+        console.log('Response:', response)
+        const data = await response;
         setGetTos(data);
       } catch (error) {
         console.error('Error fetching ToS:', error);
